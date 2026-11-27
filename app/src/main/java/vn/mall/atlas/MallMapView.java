@@ -52,7 +52,7 @@ final class MallMapView extends View {
             label(c, ZONE_CODES[z], x + 21, y + 35, 22, 0xffffffff);
             label(c, Mall.ZONES[z], x + 55, y + 35, 21, INK);
         }
-        for (Mall.Shop shop : model.mall.shops) drawShop(c, shop);
+        for (Mall.Shop shop : model.mall.shops) if (model.matches(shop.id)) drawShop(c, shop);
         c.restore();
     }
     @Override protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
@@ -84,6 +84,7 @@ final class MallMapView extends View {
     @Override public boolean onTouchEvent(MotionEvent e) {
         switch (e.getActionMasked()) {
             case MotionEvent.ACTION_DOWN:
+                stopAnimation();
                 moved = false;
                 downX = e.getX();
                 downY = e.getY();
@@ -119,7 +120,30 @@ final class MallMapView extends View {
     }
 
     private static final String[] ZONE_CODES = {"A", "B", "C", "D"};
+    private android.animation.ValueAnimator animation;
+    private void stopAnimation() {
+        if (animation != null) animation.cancel();
+    }
+    @Override protected void onDetachedFromWindow() {
+        stopAnimation();
+        super.onDetachedFromWindow();
+    }
+    void resetView() {
+        stopAnimation();
+        float cx = camera.worldX(camera.width / 2), cy = camera.worldY(camera.height / 2);
+        float zoom = camera.scale / camera.fit();
+        animation = android.animation.ValueAnimator.ofFloat(0, 1);
+        animation.setDuration(320);
+        animation.addUpdateListener(a -> {
+            float t = (float) a.getAnimatedValue();
+            camera.center(cx + (Mall.WIDTH / 2f - cx) * t,
+                    cy + (Mall.HEIGHT / 2f - cy) * t, zoom + (1 - zoom) * t);
+            invalidate();
+        });
+        animation.start();
+    }
     void locate(Mall.Shop shop) {
+        stopAnimation();
         camera.center(shop.x + Mall.Shop.W / 2f, shop.y + Mall.Shop.H / 2f, 3);
         invalidate();
     }

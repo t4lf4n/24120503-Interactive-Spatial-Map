@@ -10,6 +10,11 @@ import android.view.View;
 import android.view.MotionEvent;
 import android.view.ViewConfiguration;
 import android.widget.ScrollView;
+import android.widget.EditText;
+import android.text.Editable;
+import android.text.TextWatcher;
+import android.view.inputmethod.EditorInfo;
+import android.view.inputmethod.InputMethodManager;
 import androidx.lifecycle.ViewModelProvider;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -22,7 +27,9 @@ public class MainActivity extends ComponentActivity {
     LinearLayout details;
     ScrollView scroll;
     TextView summary;
-    Button add;
+    Button add, clear;
+    EditText search;
+    TextView result;
     LinearLayout summaryRow;
     LinearLayout root;
     MallMapView map;
@@ -87,10 +94,59 @@ public class MainActivity extends ComponentActivity {
         head.addView(action("Chú thích", this::legend), -2, dp(40));
         root.addView(head, -1, dp(56));
         model = new ViewModelProvider(this).get(VisitModel.class);
+        buildSearch();
         map = new MallMapView(this, model, this::refresh);
         root.addView(map, new LinearLayout.LayoutParams(-1, 0, 1));
         buildSheet();
         refresh();
+    }
+    private void buildSearch() {
+        LinearLayout tools = row();
+        tools.setPadding(dp(12), 0, dp(12), 0);
+        search = new EditText(this);
+        search.setSingleLine();
+        search.setTextSize(16);
+        search.setHint("Tìm theo mã gian");
+        search.setContentDescription("Tìm theo mã gian");
+        search.setPadding(dp(12), 0, dp(6), 0);
+        search.setTextColor(INK);
+        search.setBackground(background(0xffeeeee7, 10));
+        search.setImeOptions(EditorInfo.IME_ACTION_SEARCH | EditorInfo.IME_FLAG_NO_EXTRACT_UI);
+        search.setText(model.query);
+        search.setSelection(search.length());
+        search.setOnEditorActionListener((v, id, event) -> {
+            hideKeyboard();
+            return true;
+        });
+        tools.addView(search, new LinearLayout.LayoutParams(0, dp(42), 1));
+        clear = action("Xóa", () -> {
+            search.setText("");
+            hideKeyboard();
+        });
+        tools.addView(clear, -2, dp(40));
+        Button reset = action("Toàn tầng", () -> { hideKeyboard(); map.resetView(); });
+        reset.setContentDescription("Reset View · Toàn tầng");
+        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, dp(40));
+        params.leftMargin = dp(8);
+        tools.addView(reset, params);
+        root.addView(tools, -1, dp(46));
+        result = text("", 13, INK, false);
+        result.setPadding(dp(16), 0, dp(12), 0);
+        result.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
+        root.addView(result, -1, dp(28));
+        search.addTextChangedListener(new TextWatcher() {
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                model.search(s.toString());
+                refresh();
+            }
+            public void afterTextChanged(Editable s) {}
+        });
+    }
+    private void hideKeyboard() {
+        ((InputMethodManager) getSystemService(INPUT_METHOD_SERVICE))
+                .hideSoftInputFromWindow(search.getWindowToken(), 0);
+        root.requestFocus();
     }
     private void buildSheet() {
         summaryRow = row();
@@ -133,7 +189,13 @@ public class MainActivity extends ComponentActivity {
     private void refresh() {
         map.invalidate();
         Mall.Shop shop = model.selected;
-        String count = model.route.size() + " điểm ghé";
+        int matches = 0, stops = 0;
+        for (Mall.Shop item : model.mall.shops) if (model.matches(item.id)) matches++;
+        for (String id : model.route) if (model.matches(id)) stops++;
+        result.setText(matches == 0 ? "Không tìm thấy gian phù hợp" : model.filtering()
+                ? matches + " gian phù hợp" : "180 gian hàng  ·  4 khu vực");
+        clear.setVisibility(model.query.isEmpty() ? View.GONE : View.VISIBLE);
+        String count = (model.filtering() ? stops + "/" : "") + model.route.size() + " điểm ghé";
         String handle = model.expanded ? "▾  " : "▴  ";
         String info = shop == null ? "Lộ trình tham quan" : shop.id + " · " + shop.name;
         summary.setText(handle + info + "\n" + (shop == null ? "" : Mall.STATUS[shop.status] + "  ·  ") + count);
@@ -149,7 +211,10 @@ public class MainActivity extends ComponentActivity {
         if (model.route.isEmpty()) {
             details.addView(text("Chạm một gian trên sơ đồ rồi chọn Thêm điểm.", 15, INK, false), -1, dp(50));
         }
+        if (!model.route.isEmpty() && stops == 0)
+            details.addView(text("Không có điểm ghé phù hợp.", 15, INK, false), -1, dp(48));
         for (String id : model.route) {
+            if (!model.matches(id)) continue;
             Mall.Shop stop = model.byId(id);
             LinearLayout line = row();
             TextView link = text(stop.id + "   " + stop.name, 16, INK, true);
