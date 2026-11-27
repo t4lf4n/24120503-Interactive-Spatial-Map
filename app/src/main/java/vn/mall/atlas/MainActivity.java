@@ -94,13 +94,15 @@ public class MainActivity extends ComponentActivity {
         head.addView(action("Chú thích", this::legend), -2, dp(40));
         root.addView(head, -1, dp(56));
         model = new ViewModelProvider(this).get(VisitModel.class);
-        buildSearch();
+        boolean landscape = getResources().getConfiguration().orientation
+                == android.content.res.Configuration.ORIENTATION_LANDSCAPE;
+        buildSearch(landscape ? head : null);
         map = new MallMapView(this, model, this::refresh);
         root.addView(map, new LinearLayout.LayoutParams(-1, 0, 1));
         buildSheet();
         refresh();
     }
-    private void buildSearch() {
+    private void buildSearch(LinearLayout header) {
         LinearLayout tools = row();
         tools.setPadding(dp(12), 0, dp(12), 0);
         search = new EditText(this);
@@ -129,7 +131,8 @@ public class MainActivity extends ComponentActivity {
         LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(-2, dp(40));
         params.leftMargin = dp(8);
         tools.addView(reset, params);
-        root.addView(tools, -1, dp(46));
+        if (header == null) root.addView(tools, -1, dp(46));
+        else header.addView(tools, new LinearLayout.LayoutParams(0, dp(46), 2));
         result = text("", 13, INK, false);
         result.setPadding(dp(16), 0, dp(12), 0);
         result.setAccessibilityLiveRegion(View.ACCESSIBILITY_LIVE_REGION_POLITE);
