@@ -1,2 +1,6 @@
 *.pdf
-plans.md
+.gradle/
+**/build/
+.idea/
+local.properties
+*.iml
