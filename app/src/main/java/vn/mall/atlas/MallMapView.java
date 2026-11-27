@@ -9,7 +9,9 @@ import android.view.ViewConfiguration;
 import android.view.View;
 
 final class MallMapView extends View {
-    final Mall mall;
+    private final VisitModel model;
+    private final Runnable changed;
+    private float tapX, tapY;
     final Viewport camera = new Viewport();
     private float lastX, lastY, downX, downY, lastSpan;
     private boolean moved;
@@ -18,9 +20,10 @@ final class MallMapView extends View {
     private final Typeface bold = Typeface.create("sans-serif-medium", Typeface.NORMAL);
     private static final int[] FILLS = {0xffb3d9c6, 0xfff2d294, 0xffd2d4d2};
     private static final int INK = 0xff153d34;
-    MallMapView(Context context, Mall mall) {
+    MallMapView(Context context, VisitModel model, Runnable changed) {
         super(context);
-        this.mall = mall;
+        this.model = model;
+        this.changed = changed;
         slop = ViewConfiguration.get(context).getScaledTouchSlop();
         setContentDescription("Sơ đồ tương tác, bốn khu gian hàng");
         setBackgroundColor(0xfff3f2ea);
@@ -49,7 +52,7 @@ final class MallMapView extends View {
             label(c, ZONE_CODES[z], x + 21, y + 35, 22, 0xffffffff);
             label(c, Mall.ZONES[z], x + 55, y + 35, 21, INK);
         }
-        for (Mall.Shop shop : mall.shops) drawShop(c, shop);
+        for (Mall.Shop shop : model.mall.shops) drawShop(c, shop);
         c.restore();
     }
     @Override protected void onSizeChanged(int width, int height, int oldWidth, int oldHeight) {
@@ -98,7 +101,11 @@ final class MallMapView extends View {
                 return true;
             case MotionEvent.ACTION_UP:
                 if (!moved && Math.hypot(e.getX() - downX, e.getY() - downY) <= slop)
+                {
+                    tapX = e.getX();
+                    tapY = e.getY();
                     performClick();
+                }
                 return true;
             default:
                 return true;
@@ -106,14 +113,30 @@ final class MallMapView extends View {
     }
     @Override public boolean performClick() {
         super.performClick();
+        model.tap(model.at(camera.worldX(tapX), camera.worldY(tapY)));
+        changed.run();
         return true;
     }
 
     private static final String[] ZONE_CODES = {"A", "B", "C", "D"};
+    void locate(Mall.Shop shop) {
+        camera.center(shop.x + Mall.Shop.W / 2f, shop.y + Mall.Shop.H / 2f, 3);
+        invalidate();
+    }
     private void drawShop(Canvas c, Mall.Shop shop) {
         int x = shop.x, y = shop.y;
         fill(FILLS[shop.status]);
         c.drawRoundRect(x, y, x + Mall.Shop.W, y + Mall.Shop.H, 4, 4, brush);
+        if (shop == model.selected) {
+            brush.setStyle(Paint.Style.STROKE);
+            brush.setStrokeWidth(3);
+            brush.setColor(0xff174a91);
+            c.drawRoundRect(x, y, x + Mall.Shop.W, y + Mall.Shop.H, 4, 4, brush);
+        }
+        if (model.route.contains(shop.id)) {
+            fill(0xff174a91);
+            c.drawCircle(x + 43, y + 23, 4, brush);
+        }
         label(c, shop.id, x + 5, y + 20, 13, INK);
         fill(INK);
         if (shop.status == 1) c.drawCircle(x + 44, y + 6, 2.4f, brush);
