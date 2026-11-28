@@ -63,14 +63,14 @@ Mục 5.2 ghi “tối thiểu 05–07 commit có ý nghĩa, phân bổ trong th
 
 ## 5. Checklist bàn giao đối chiếu mục 8
 
-Chỉ đánh dấu sau khi đã thử trên phiên bản định nộp.
+Kết quả chi tiết và thông số máy thử nằm trong [README](README.md).
 
-- [ ] Một Canvas có 180 gian hàng và ít nhất 3 trạng thái trực quan phân biệt được.
-- [ ] Pan có biên, pinch đúng tâm hai ngón trong khoảng zoom cho phép, hit-testing đúng sau Pan và Zoom, kể cả sát mép.
-- [ ] Chú thích dễ mở, tìm theo mã có báo rỗng và có thể xóa điều kiện. Reset View hoạt động và giữ lựa chọn, lộ trình, điều kiện tìm.
-- [ ] Bottom Sheet thu gọn, mở rộng, cuộn và đồng bộ hai chiều. Chọn dòng định vị đúng gian, xóa một điểm chỉ cập nhật điểm đó.
-- [ ] Xoay ngang/dọc giữ gian đang xem và các điểm ghé. Cả hai bố cục dùng được, các luồng chính chạy ổn định.
-- [ ] Build, cài và khởi chạy được từ bản clone sạch theo README. Mã nguồn và tệp cần thiết đã có trên GitHub.
-- [ ] Lịch sử trên GitHub có các commit có ý nghĩa, phân bổ trong tuần. Đối chiếu với 7 mốc dự kiến.
-- [ ] Video dài 1–5 phút thể hiện đủ các thao tác ở mục 5.3. README đủ 10 nội dung, gồm nhật ký AI đã cập nhật.
-- [ ] Mở được cả đường dẫn repository lẫn video với quyền của người chấm.
+- [x] Một Canvas có 180 gian hàng và ít nhất 3 trạng thái trực quan phân biệt được.
+- [x] Pan có biên, pinch đúng tâm hai ngón trong khoảng zoom cho phép, hit-testing đúng sau Pan và Zoom, kể cả sát mép.
+- [x] Chú thích dễ mở, tìm theo mã có báo rỗng và có thể xóa điều kiện. Reset View hoạt động và giữ lựa chọn, lộ trình, điều kiện tìm.
+- [x] Bottom Sheet thu gọn, mở rộng, cuộn và đồng bộ hai chiều. Chọn dòng định vị đúng gian, xóa một điểm chỉ cập nhật điểm đó.
+- [x] Xoay ngang/dọc giữ gian đang xem và các điểm ghé. Cả hai bố cục dùng được, các luồng chính chạy ổn định.
+- [x] Build, cài và khởi chạy được từ bản clone sạch theo README. Mã nguồn và tệp cần thiết đã có trên GitHub.
+- Theo yêu cầu thực hiện, bảy commit theo mốc được tạo liên tiếp trong một phiên. Tiêu chí phân bổ trong tuần của kế hoạch ban đầu chưa đạt.
+- [x] Video dài 1–5 phút thể hiện đủ các thao tác ở mục 5.3. README đủ 10 nội dung, gồm nhật ký AI đã cập nhật.
+- Đường dẫn bàn giao: [repository](https://github.com/t4lf4n/24120503-Interactive-Spatial-Map) và [video](docs/atlas-demo.mp4).
